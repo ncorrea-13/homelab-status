@@ -6,7 +6,7 @@ services:
     container_name: homelab-status-api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${PORT}:8000"
     volumes:
       - homelab-status-data:/data
     environment:
