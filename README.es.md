@@ -4,7 +4,7 @@
 
 **API en FastAPI que expone el estado de servicios monitoreados por Uptime Kuma**
 
-[![Deploy](https://github.com/ncorrea-13/homelab-status/actions/workflows/deploy.yml/badge.svg)](https://github.com/ncorrea-13/homelab-status/actions/workflows/deploy.yml)
+[![Deploy](https://github.com/ncorrea-13/homelab-status/actions/workflows/ci.yml/badge.svg)](https://github.com/ncorrea-13/homelab-status/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![SQLite](https://img.shields.io/badge/SQLite-file--based-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org)
