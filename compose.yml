@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  homelab-status-api:
+    build: .
+    container_name: homelab-status-api
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORT}:8000"
+    volumes:
+      - homelab-status-data:/data
+    environment:
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - DB_PATH=/data/status.db
+
+volumes:
+  homelab-status-data:
