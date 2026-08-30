@@ -1,4 +1,5 @@
 import os
+import secrets as secrets_lib
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
@@ -7,8 +8,16 @@ from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+
+def _read_secret(env_name: str, default: str = "") -> str:
+    file_path = os.environ.get(f"{env_name}_FILE")
+    if file_path and os.path.exists(file_path):
+        return open(file_path).read().strip()
+    return os.environ.get(env_name, default)
+
+
 DB_PATH = os.environ.get("DB_PATH", "/data/status.db")
-WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "")
+WEBHOOK_SECRET = _read_secret("WEBHOOK_SECRET")
 
 ALLOWED_ORIGINS = [
     "https://homelab.ncorrea.com.ar",
@@ -75,7 +84,11 @@ def on_startup():
 
 
 def check_secret(provided: str | None):
-    if not WEBHOOK_SECRET or provided != WEBHOOK_SECRET:
+    if (
+        not WEBHOOK_SECRET
+        or not provided
+        or not secrets_lib.compare_digest(provided, WEBHOOK_SECRET)
+    ):
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 
@@ -166,9 +179,6 @@ def list_services_raw(
         rows = conn.execute("SELECT * FROM services ORDER BY name").fetchall()
 
     return [dict(r) for r in rows]
-
-
-# --- API pública -------------------------------------------------------
 
 
 @app.get("/api/status")
