@@ -149,3 +149,7 @@ func (s *SQLiteStore) GetStatus(ctx context.Context) ([]models.ServiceStatus, er
 	}
 	return statuses, nil
 }
+
+func (s *SQLiteStore) Close() error {
+	return s.db.Close()
+}
