@@ -1,12 +1,10 @@
-version: "3.8"
-
 services:
   homelab-status-api:
     build: .
     container_name: homelab-status-api
     restart: unless-stopped
     ports:
-      - "127.0.0.1:${PORT}:8000"
+      - "127.0.0.1:${PORT}:8080"
     volumes:
       - homelab-status-data:/data
     environment:

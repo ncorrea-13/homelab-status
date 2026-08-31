@@ -1,17 +1,24 @@
-FROM python:3.12-slim
+FROM golang:1.27-alpine AS builder
 
-WORKDIR /app
+WORKDIR /build
 
-RUN pip install --no-cache-dir --upgrade pip
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY requirements.txt .
+COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN CGO_ENABLED=0 GOOS=linux go build -o server ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o healthcheck ./cmd/healthcheck
 
-COPY app/ ./app/
+FROM gcr.io/distroless/static-debian12
+
+COPY --from=builder /build/server /server
+COPY --from=builder /build/healthcheck /healthcheck
 
 ENV DB_PATH=/data/status.db
+EXPOSE 8080
 
-EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["/healthcheck"]
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["/server"]
