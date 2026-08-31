@@ -1,17 +1,19 @@
 package handlers
 
-import "database/sql"
+import (
+	"github.com/ncorrea-13/homelab-status/internal/models"
+)
 
-func toNullString(s *string) sql.NullString {
+func toNullString(s *string) models.NullString {
 	if s == nil {
-		return sql.NullString{}
+		return models.NullString{}
 	}
-	return sql.NullString{String: *s, Valid: true}
+	return models.NullString{String: *s, Valid: true}
 }
 
-func toNullInt64(i *int64) sql.NullInt64 {
+func toNullInt64(i *int64) models.NullInt64 {
 	if i == nil {
-		return sql.NullInt64{}
+		return models.NullInt64{}
 	}
-	return sql.NullInt64{Int64: *i, Valid: true}
+	return models.NullInt64{Int64: *i, Valid: true}
 }
