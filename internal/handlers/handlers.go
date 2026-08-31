@@ -24,3 +24,7 @@ func (h *Handlers) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(statuses)
 }
+
+func (h *Handlers) HealthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
