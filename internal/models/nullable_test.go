@@ -33,3 +33,45 @@ func TestNullStringMarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestNullStringScan(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          interface{}
+		expectedString string
+		expectedValid  bool
+	}{
+		{
+			name:           "Valid string",
+			input:          "test",
+			expectedString: "test",
+			expectedValid:  true,
+		},
+		{
+			name:           "Nil value",
+			input:          nil,
+			expectedString: "",
+			expectedValid:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var ns NullString
+			err := ns.Scan(tt.input)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			gotString := ns.String
+
+			if gotString != tt.expectedString {
+				t.Errorf("expected string %s, got %s", tt.expectedString, gotString)
+			}
+
+			gotValid := ns.Valid
+			if gotValid != tt.expectedValid {
+				t.Errorf("expected valid %v, got %v", tt.expectedValid, gotValid)
+			}
+		})
+	}
+}
