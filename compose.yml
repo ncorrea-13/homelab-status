@@ -8,8 +8,15 @@ services:
     volumes:
       - homelab-status-data:/data
     environment:
-      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - WEBHOOK_SECRET_FILE=/run/secrets/webhook_secret
       - DB_PATH=/data/status.db
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN}
+    secrets:
+      - webhook_secret
 
 volumes:
   homelab-status-data:
+
+secrets:
+  webhook_secret:
+    external: true
