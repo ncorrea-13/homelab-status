@@ -2,99 +2,72 @@
 
 # homelab-status
 
-**API en FastAPI que expone el estado de servicios monitoreados por Uptime Kuma**
+**Servicio en Go que expone el estado de servicios monitoreados por Uptime Kuma**
 
 [![Deploy](https://github.com/ncorrea-13/homelab-status/actions/workflows/ci.yml/badge.svg)](https://github.com/ncorrea-13/homelab-status/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Go](https://img.shields.io/badge/Go-1.27-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![SQLite](https://img.shields.io/badge/SQLite-file--based-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-*[English version](README.md)*
+_[English version](README.md)_
 
 </div>
 
 ---
 
-Recibe notificaciones de [Uptime Kuma](https://github.com/louislam/uptime-kuma) (webhook tipo "Webhook"), guarda el historial en SQLite y expone el estado actual de cada servicio como JSON. Actualmente es consumida por la página del servidor en [homelab.ncorrea.com.ar](https://homelab.ncorrea.com.ar).
-
-Pensado para correr como contenedor del homelab (Podman), sin exponer nada nuevo a internet salvo lo que ya decidas exponer vía Tunnel.
-
-## Stack
-
-| Capa | Tecnología |
-| --- | --- |
-| Runtime | Python 3.12 |
-| Framework | FastAPI |
-| Servidor ASGI | Uvicorn |
-| Base de datos | SQLite (fichero local, montado como volumen) |
-| Contenedor | Podman / Docker Compose |
+Recibe notificaciones webhook de [Uptime Kuma](https://github.com/louislam/uptime-kuma), guarda el historial en SQLite y expone el estado actual de cada servicio como JSON. Consumido por [homelab.ncorrea.com.ar](https://homelab.ncorrea.com.ar). Corre como un contenedor más del homelab (Podman), nada expuesto más allá de lo ya tuneleado.
 
 ## Quick Start
 
-### Local (sin contenedor)
-
 ```bash
-# 1. Instalar dependencias
-pip install -r requirements.txt
+cp .env.example .env   # completar WEBHOOK_SECRET (o usar el secret de compose abajo)
 
-# 2. Configurar entorno
-cp .env.example .env
-# Completar WEBHOOK_SECRET
-
-# 3. Arrancar
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+go run ./cmd/server                 # local
+podman compose up -d --build        # contenedor (necesita un secret podman webhook_secret)
 ```
 
-### Podman / Docker Compose
-
-```bash
-cp .env.example .env
-# Completar WEBHOOK_SECRET
-
-podman compose up -d --build
-# o: docker compose up -d --build
-```
-
-SQLite persiste `status-data` (`/data/status.db` dentro del contenedor).
+Datos persisten en `/data/status.db` (SQLite, sin cgo).
 
 ## Variables de entorno
 
-| Variable | Requerida | Descripción |
-| --- | --- | --- |
-| `WEBHOOK_SECRET` | Sí | Header `x-webhook-secret` o query `?secret=`. Protege el webhook de Kuma y los endpoints `/admin/services`. Vacío = 401 siempre. |
-| `ALLOWED_ORIGINS` | No | Hosts permitidos para CORS (`app/main.py`). |
-| `DB_PATH` | No | Ruta del fichero SQLite (default `/data/status.db`). |
+| Variable                                 | Descripción                                                                    |
+| ------------------------------------------ | --------------------------------------------------------------------------------- |
+| `WEBHOOK_SECRET` / `WEBHOOK_SECRET_FILE` | Una de las dos, requerida. Header `X-Webhook-Secret` o `?secret=`. Vacío = 401. |
+| `ALLOWED_ORIGIN`                         | Origen CORS para `/api/status`.                                                |
+| `DB_PATH`                                | Ruta SQLite (default `/data/status.db`).                                       |
+| `PORT`                                   | Puerto host, solo compose.                                                     |
 
-## API Endpoints
+## API
 
-| Método | Ruta | Auth | Descripción |
-| --- | --- | --- | --- |
-| `POST` | `/webhook/kuma` | secret | Recibe heartbeats de Uptime Kuma y los guarda en `events` |
-| `GET` | `/api/status` | pública | Devuelve el último estado de cada servicio activo |
-| `POST` | `/admin/services` | secret | Alta/edición de un servicio (`{ id, name }`) |
-| `DELETE` | `/admin/services/{id}` | secret | Baja lógica de un servicio (`active = 0`) |
-| `GET` | `/admin/services` | secret | Lista cruda de todos los servicios (debug) |
+| Método   | Ruta                    | Auth   |
+| -------- | ----------------------- | ------ |
+| `GET`    | `/healthz`              | -      |
+| `GET`    | `/api/status`           | -      |
+| `POST`   | `/webhook/kuma`         | secret |
+| `GET`    | `/admin/services`       | secret |
+| `POST`   | `/admin/services`       | secret |
+| `DELETE` | `/admin/services/{id}`  | secret |
 
-## Estructura del Proyecto
+## Estructura
 
 ```
-app/
-└── main.py           # App FastAPI: rutas, CORS, acceso a SQLite
-compose.yml            # Definición del servicio + volumen status-data
-Dockerfile              # Imagen del contenedor
-requirements.txt        # Dependencias Python
+cmd/
+├── server/       # entrypoint
+└── healthcheck/  # binario del HEALTHCHECK
+internal/
+├── auth/         # carga del secret + middleware de auth
+├── handlers/     # router, handlers HTTP, CORS
+├── models/       # tipos de dominio
+└── store/        # almacenamiento SQLite
 ```
 
 ## Integración con Uptime Kuma
 
-En cualquier programa de monitoreo se debe agregar una notificación de tipo  Webhook, con la siguiente URL:
+Agregá una notificación Webhook apuntando a:
 
 ```
 https://<tu-host>/webhook/kuma?secret=<WEBHOOK_SECRET>
 ```
-
-(o mandar el secret por header en vez de query param).
 
 ## Proyecto
 
