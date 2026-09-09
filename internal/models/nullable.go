@@ -2,10 +2,18 @@ package models
 
 import (
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 )
 
 type NullString sql.NullString
+
+func (ns NullString) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return ns.String, nil
+}
 
 func (ns NullString) MarshalJSON() ([]byte, error) {
 	if !ns.Valid {
@@ -24,6 +32,13 @@ func (ns *NullString) Scan(value interface{}) error {
 }
 
 type NullInt64 sql.NullInt64
+
+func (ni NullInt64) Value() (driver.Value, error) {
+	if !ni.Valid {
+		return nil, nil
+	}
+	return ni.Int64, nil
+}
 
 func (ni NullInt64) MarshalJSON() ([]byte, error) {
 	if !ni.Valid {
