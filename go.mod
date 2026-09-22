@@ -2,7 +2,7 @@ module github.com/ncorrea-13/homelab-status
 
 go 1.27.0
 
-require modernc.org/sqlite v1.58.0
+require modernc.org/sqlite v1.59.0
 
 require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
