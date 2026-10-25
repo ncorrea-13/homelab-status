@@ -69,6 +69,10 @@ Add a Webhook notification pointing to:
 https://<your-host>/webhook/kuma?secret=<WEBHOOK_SECRET>
 ```
 
+## Status
+
+Stable / Feature-complete. This software does everything I need it to do. I'll keep it working if dependencies break, but no new features are planned. Issues and PRs are still welcome.
+
 ## Project
 
 Personal service for Nicolás Correa's homelab.
